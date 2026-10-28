@@ -1,0 +1,56 @@
+---
+# ba0fde3d-bee7-4307-b97b-17d0d20aff50
+version: 2
+updates:
+
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directories:
+      - '/'
+      - '/.github/actions/**/*'
+    schedule:
+      interval: "daily"
+      time: "07:00"
+    open-pull-requests-limit: 5
+    groups:
+      gha-almalinux-atomic-ci:
+        patterns:
+          - "AlmaLinux/atomic-ci*"
+      gha-actions-checkout:
+        patterns:
+          - "actions/checkout"
+      gha-actions-download-artifact:
+        patterns:
+          - "actions/download-artifact"
+      gha-actions-upload-artifact:
+        patterns:
+          - "actions/upload-artifact"
+      gha-dependabot-fetch-metadata:
+        patterns:
+          - "dependabot/fetch-metadata"
+      gha-softprops-action-gh-release:
+        patterns:
+          - "softprops/action-gh-release"
+      gha-redhat-actions-podman-login:
+        patterns:
+          - "redhat-actions/podman-login"
+      gha-sigstore-cosign-installer:
+        patterns:
+          - "sigstore/cosign-installer"
+      gha-aws-actions-configure-aws-credentials:
+        patterns:
+          - "aws-actions/configure-aws-credentials"
+      gha-ublue-os-remove-unwanted-software:
+        patterns:
+          - "ublue-os/remove-unwanted-software"
+
+  # Maintain dependencies for Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "07:00"
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
