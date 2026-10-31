@@ -23,13 +23,42 @@ in the workflow files and replace it with the appropriate secret.
 
 ### Pick a base image
 
-This respin uses the headless base image `quay.io/almalinuxorg/almalinux-bootc:10`, maintained by the
-[AlmaLinux bootc-images project](https://github.com/AlmaLinux/bootc-images). Per its own manifest it is
-"roughly similar to a headless server installation": 467 packages, no `gnome-shell`, no `gdm`, no
-`xorg`/`wayland`.
+This respin uses the headless base image `quay.io/almalinuxorg/almalinux-bootc:10.2-<date>-amd64_v2`,
+maintained by the [AlmaLinux bootc-images project](https://github.com/AlmaLinux/bootc-images). Per its
+own manifest it is "roughly similar to a headless server installation": 467 packages, no `gnome-shell`,
+no `gdm`, no `xorg`/`wayland`.
+
+The `-amd64_v2` suffix matters: the default AlmaLinux 10 amd64 builds require an **x86-64-v3** CPU
+(Haswell/Excavator or newer, or a VM with v3 CPU flags). On older hardware (Sandy Bridge, Ivy Bridge,
+pre-Haswell VMs) those images cannot execute *any* binary, and a rebase fails with:
+
+```
+error: Sanity-checking final rootfs: bwrap(/usr/bin/true): Child process exited with code 127
+```
+
+The `-amd64_v2` variant is the same AlmaLinux 10 userland built for the x86-64-v2 baseline. It is only
+published with dated tags, so update the `FROM` line by hand when bumping. To find the newest one:
+
+```sh
+skopeo list-tags docker://quay.io/almalinuxorg/almalinux-bootc \
+  | jq -r '.Tags[] | select(test("-amd64_v2$"))' | sort -V | tail -1
+```
+
+Because the `-amd64_v2` tags are dated, Dependabot cannot follow them. Instead,
+[`update-base-image.yml`](.github/workflows/update-base-image.yml) runs daily, resolves the newest
+`10.x-<date>-amd64_v2` tag, pins its digest and opens a PR with the updated `FROM` line. The normal
+build workflow then builds and tests that PR, so merging it rolls the base forward.
+
+If you'd rather have a tag that moves on its own and don't need AlmaLinux 10, use the rolling `:9` tag
+(AlmaLinux 9 is also x86-64-v2, supported through 2032):
+
+```dockerfile
+FROM quay.io/almalinuxorg/almalinux-bootc:9
+```
 
 The base image is signed with a different Cosign key than the desktop images, so this repo carries
-`almalinux-bootc.pub` and `.github/workflows/build.yml` passes it as `upstream-public-key`.
+`almalinux-bootc.pub` and `.github/workflows/build.yml` passes it as `upstream-public-key`. The
+`-amd64_v2` variant is signed with the same key.
 
 To use a different base image, change the `FROM` line in the [Dockerfile](Dockerfile). If the new image
 uses a different signing key, add its Cosign public key to the repository and specify the file name in
@@ -172,7 +201,7 @@ After this, reboot into your new image. Now we can fix it to enforce key verific
 with the new image's `policy.json`:
 
 ```sh
-sudo cp /usr//etc/containers/policy.json /etc/containers/policy.json
+sudo cp /usr/etc/containers/policy.json /etc/containers/policy.json
 ```
 
 Now your image should be able to update itself correctly. Or not at all. Remember,
@@ -212,6 +241,7 @@ directory for details.
 - **Build fails locally:** Ensure you have Podman and QEMU installed, and that you have the necessary permissions (try running with `sudo`).
 - **CI build fails:** Check the Actions tab in GitHub for logs. Make sure your secrets and configuration are correct.
 - **Image doesn't boot in QEMU:** Double-check your custom scripts and added files for errors, check the build logs for errors.
+- **`bootc switch`/`rpm-ostree rebase` fails with `Sanity-checking final rootfs: bwrap(/usr/bin/true): Child process exited with code 127`:** rpm-ostree hides the child's stderr. This almost always means the host CPU lacks **x86-64-v3**, which the default AlmaLinux 10 base requires. Confirm by running the same image binary directly on the host: `podman run --rm <your-image> /usr/bin/true; echo $?` — a `127` plus `Fatal glibc error: CPU does not support x86-64-v3` settles it (check `journalctl -u rpm-ostreed | grep -i glibc` too). Use the `-amd64_v2` base variant, or an AlmaLinux 9 base (x86-64-v2).
 
 ## Resources
 

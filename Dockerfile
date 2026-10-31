@@ -9,7 +9,12 @@ COPY *.pub /keys/
 # Base Image
 # Headless AlmaLinux server base: no GNOME, no display manager, no X11/Wayland.
 # Roughly equivalent to a minimal server install (systemd + kernel + dnf + sshd).
-FROM quay.io/almalinuxorg/almalinux-bootc:10@sha256:0a036afe9ddfb987f2b5c428242ebeaf5c74d4279122f4ccf45dc7c38fe55c73
+#
+# The default amd64 build of AlmaLinux 10 requires an x86-64-v3 CPU (Haswell/Excavator
+# or newer). This is the -amd64_v2 variant, built for the x86-64-v2 baseline, so it
+# also runs on older hardware (Sandy Bridge/Ivy Bridge, pre-Haswell VMs, etc.).
+# The variant is only published with dated tags; bump both tag and digest when updating.
+FROM quay.io/almalinuxorg/almalinux-bootc:10.2-20261031-amd64_v2
 
 ARG IMAGE_NAME
 ARG IMAGE_REGISTRY
