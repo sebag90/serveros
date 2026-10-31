@@ -38,6 +38,8 @@ live_image:
 	curl -fsSL -o ./output/live/Containerfile $(LIVE_URL)/Containerfile
 	curl -fsSL -o ./output/live/build.sh $(LIVE_URL)/build.sh
 	chmod +x ./output/live/build.sh
+	# Same hook CI uses (via atomic-ci `hook-script`): boot straight into `liveinst --text`.
+	cp files/live/hook.sh ./output/live/hook.sh
 
 	$(PODMAN) build \
 		--pull=never \

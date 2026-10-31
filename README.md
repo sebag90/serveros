@@ -171,8 +171,13 @@ need a network connection.
 
 > [!NOTE]
 > Because this is a headless image, the live session has no desktop, so the installer does not launch
-> itself the way it does on the desktop respins. Log in on the console (or serial console) and start
-> Anaconda's text UI yourself:
+> itself the way it does on the desktop respins. This repo adds `textinst` to the ISO's kernel command
+> line via [`files/live/hook.sh`](files/live/hook.sh) (passed as `hook-script` to atomic-ci), and
+> `livesys-late` then starts Anaconda's text UI automatically.
+>
+> If you're using an ISO built without the hook, either add `textinst` to the boot entry at the GRUB
+> menu (press `e`), or log in on the console with `liveuser` or `root` (both passwordless) and start it
+> yourself:
 > ```sh
 > sudo liveinst --text
 > ```

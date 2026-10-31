@@ -41,6 +41,8 @@ jobs:
       REGISTRY_USER: ${{ needs.set-env.outputs.REGISTRY_USER }}
       upload-to-cloudflare: false
       # bucket: ${{ secrets.R2_BUCKET }}
+      # Headless image: make the live ISO boot straight into Anaconda's text UI.
+      hook-script: files/live/hook.sh
     secrets:
       REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
