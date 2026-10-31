@@ -2,6 +2,10 @@
 
 Welcome to your brand-new Atomic AlmaLinux Respin!
 
+This respin is a **headless server** image. It is built on the AlmaLinux server bootc base image, so it
+ships no GNOME/KDE, no display manager, and no X11 or Wayland stack — just systemd, the kernel, dnf,
+sshd and standard server tooling. You administer it over SSH or a serial/VT console.
+
 ## Initial Setup
 
 ### Set basic configuration
@@ -17,15 +21,25 @@ In the ["config"](.github/actions/config/action.yml) action, you'll find a job w
 If your registry is not GitHub or you need a specific token, search for `REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}`
 in the workflow files and replace it with the appropriate secret.
 
-### Pick a base desktop image
+### Pick a base image
 
-By default, this template uses the base image `quay.io/almalinuxorg/atomic-desktop-gnome:10`, maintained by the
-[AlmaLinux Atomic SIG](https://wiki.almalinux.org/sigs/Atomic.html). If you prefer KDE, you can use
-`quay.io/almalinuxorg/atomic-desktop-kde:10` instead.
+This respin uses the headless base image `quay.io/almalinuxorg/almalinux-bootc:10`, maintained by the
+[AlmaLinux bootc-images project](https://github.com/AlmaLinux/bootc-images). Per its own manifest it is
+"roughly similar to a headless server installation": 467 packages, no `gnome-shell`, no `gdm`, no
+`xorg`/`wayland`.
 
-To switch images, change the `FROM` line in the [Dockerfile](Dockerfile). If your image use a different
-signing key, download the new Cosign public key and specify its name in the `upstream-public-key`
-parameter in `.github/workflows/build.yml`, or remove the parameter to disable key verification.
+The base image is signed with a different Cosign key than the desktop images, so this repo carries
+`almalinux-bootc.pub` and `.github/workflows/build.yml` passes it as `upstream-public-key`.
+
+To use a different base image, change the `FROM` line in the [Dockerfile](Dockerfile). If the new image
+uses a different signing key, add its Cosign public key to the repository and specify the file name in
+the `upstream-public-key` parameter in `.github/workflows/build.yml`, or remove the parameter to disable
+key verification.
+
+> [!NOTE]
+> Don't try to strip GNOME out of one of the `atomic-desktop-*` images with `dnf remove`. Layer the
+> server image instead — deleting the desktop packages from the desktop base leaves a half-populated
+> image behind and fights the image's own presets.
 
 ### Set up container signing (Optional, highly recommended)
 
@@ -78,8 +92,8 @@ Now you're ready to make your respin your own!
 ### Adding files
 
 Place any files you want to include in your image in [`/files/system/`](files/system/). The
-directory structure and permissions will be preserved. This is ideal for adding themes,
-backgrounds, configuration files, etc.
+directory structure and permissions will be preserved. This is ideal for adding configuration files,
+systemd units, firewall rules, etc.
 
 ### Executing commands
 
@@ -125,6 +139,16 @@ managing and updating container-based operating system images. Here are some bas
 Build or download the ISO for your image and boot into it. It starts a live session of your image, where you can
 try it out before installing it with the installer. The image is included in the ISO, so the installation doesn't
 need a network connection.
+
+> [!NOTE]
+> Because this is a headless image, the live session has no desktop, so the installer does not launch
+> itself the way it does on the desktop respins. Log in on the console (or serial console) and start
+> Anaconda's text UI yourself:
+> ```sh
+> sudo liveinst --text
+> ```
+> The boot menu is text-only too; `rhgb quiet` on the kernel command line is a no-op here since
+> `plymouth` is not installed.
 
 ### Switching from another image
 
@@ -192,7 +216,8 @@ directory for details.
 ## Resources
 
 - [AlmaLinux Atomic SIG](https://wiki.almalinux.org/sigs/Atomic.html)
-- [AlmaLinux Atomic Desktop Images](https://github.com/AlmaLinux/atomic-desktop)
+- [AlmaLinux bootc images (server base)](https://github.com/AlmaLinux/bootc-images)
+- [AlmaLinux Atomic Desktop Images](https://github.com/AlmaLinux/atomic-desktop) (not used here)
 - [bootc documentation](https://github.com/containers/bootc)
 - [Podman documentation](https://podman.io/)
 - [QEMU documentation](https://www.qemu.org/)

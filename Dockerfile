@@ -7,7 +7,9 @@ COPY --chmod=0755 files/scripts /build_files/
 COPY *.pub /keys/
 
 # Base Image
-FROM quay.io/almalinuxorg/atomic-desktop-gnome:10@sha256:6b008b6eb5ea71de86c778d1cf73e3a784c6c4ada6e45d56667fc0912bdf12c5
+# Headless AlmaLinux server base: no GNOME, no display manager, no X11/Wayland.
+# Roughly equivalent to a minimal server install (systemd + kernel + dnf + sshd).
+FROM quay.io/almalinuxorg/almalinux-bootc:10@sha256:0a036afe9ddfb987f2b5c428242ebeaf5c74d4279122f4ccf45dc7c38fe55c73
 
 ARG IMAGE_NAME
 ARG IMAGE_REGISTRY
