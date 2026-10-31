@@ -45,6 +45,9 @@ jobs:
       previous-image: "${{ needs.set-env.outputs.IMAGE_REF }}:latest"
       upstream-public-key: almalinux-bootc.pub
       platforms: ${{ needs.set-env.outputs.PLATFORMS }}
+      # create-release.yml attaches *.spdx.json.gz to every release, so the SBOMs it
+      # compresses have to actually be produced here. Defaults to false upstream.
+      generate-sbom: true
       skip-maximize-build-space: true
       image-path: ${{ needs.set-env.outputs.IMAGE_PATH }}
       REGISTRY: ${{ needs.set-env.outputs.REGISTRY }}
