@@ -170,19 +170,16 @@ try it out before installing it with the installer. The image is included in the
 need a network connection.
 
 > [!NOTE]
-> Because this is a headless image, the live session has no desktop, so the installer does not launch
-> itself the way it does on the desktop respins. This repo adds `textinst` to the ISO's kernel command
-> line via [`files/live/hook.sh`](files/live/hook.sh) (passed as `hook-script` to atomic-ci), and
-> `livesys-late` then starts Anaconda's text UI automatically.
+> Because this is a headless image, the live session has no desktop. The ISO automatically
+> logs in as `root` on the console (both virtual console and serial) and starts the Anaconda
+> text installer directly.
 >
-> If you're using an ISO built without the hook, either add `textinst` to the boot entry at the GRUB
-> menu (press `e`), or log in on the console with `liveuser` or `root` (both passwordless) and start it
-> yourself:
+> If you exit the installer, you are returned to a root shell and can restart it anytime with:
 > ```sh
-> sudo liveinst --text
+> liveinst
 > ```
-> The boot menu is text-only too; `rhgb quiet` on the kernel command line is a no-op here since
-> `plymouth` is not installed.
+> You can also connect over the network via SSH (`ssh root@<ip>`, passwordless) and run
+> `liveinst` remotely.
 
 ### Switching from another image
 

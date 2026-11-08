@@ -13,6 +13,16 @@ ln -sf /usr/lib/systemd/system/multi-user.target /etc/systemd/system/default.tar
 # headless box is only reachable over the network, so be explicit about it.
 systemctl enable sshd.service
 
+# Auto-create user home directories:
+# 1. Configure useradd to create home directories by default
+sed -i 's/^CREATE_HOME.*/CREATE_HOME yes/' /etc/login.defs || echo "CREATE_HOME yes" >> /etc/login.defs
+
+# 2. Enable PAM mkhomedir so first-time logins auto-create home from /etc/skel if missing
+authselect select local with-mkhomedir --force || true
+
+# Essential server tooling
+dnf install -y git
+
 # Examples:
 # dnf install -y 'dnf-command(config-manager)'
 # dnf config-manager --set-enabled crb
